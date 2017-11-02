@@ -67,7 +67,7 @@ public class MyUI extends UI {
         	grid.asSingleSelect().clear();
         	editCustomerButton.setEnabled(false);
         	deleteCustomerButton.setEnabled(false);
-        	addWindow(new SaveWindow(this, null));
+        	addWindow(new SaveWindow(this, new Customer()));
         });
         
         editCustomerButton.setEnabled(false);
@@ -102,7 +102,6 @@ public class MyUI extends UI {
             	selectedCustomer = event.getValue();
             	editCustomerButton.setEnabled(true);
             	deleteCustomerButton.setEnabled(true);
-                //form.setCustomer(event.getValue());
             }
         });
         

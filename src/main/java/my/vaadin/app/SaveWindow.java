@@ -45,14 +45,12 @@ public class SaveWindow extends Window {
         save.setClickShortcut(KeyCode.ENTER);
 
         binder.bindInstanceFields(this);
+        binder.setBean(customer);
 
         save.addClickListener(e -> this.save(myUI, customer));
     }
 
     private void save(MyUI myUI, Customer customer) {
-    	if(customer != null) {
-    		binder.setBean(customer);
-    	}
     	service.save(customer);
     	myUI.updateList();
     	close();
