@@ -19,13 +19,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-/**
- * This UI is the application entry point. A UI may either represent a browser window 
- * (or tab) or some part of a html page where a Vaadin application is embedded.
- * <p>
- * The UI is initialized using {@link #init(VaadinRequest)}. This method is intended to be 
- * overridden to add component to the user interface and initialize non-component functionality.
- */
 @SuppressWarnings({ "deprecation", "serial" })
 @Theme("mytheme")
 public class MyUI extends UI {
@@ -33,19 +26,21 @@ public class MyUI extends UI {
     private CustomerService service = CustomerService.getInstance();
     private Grid<Customer> grid = new Grid<>(Customer.class);
     private TextField filterText = new TextField();
-    private CustomerForm form = new CustomerForm(this);
     private Customer selectedCustomer = null;
     private Button editCustomerButton = new Button("Edit customer");
     private Button deleteCustomerButton = new Button("Delete customer");
+    private Button enableButton = new Button("Enable Modification");
+    private Button disableButton = new Button("Disable Modification");
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
         final VerticalLayout layout = new VerticalLayout();
-
+        
+        // filter
         filterText.setPlaceholder("filter by name...");
         filterText.addValueChangeListener(e -> updateList());
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
-
+        
         Button clearFilterTextBtn = new Button(FontAwesome.TIMES);
         clearFilterTextBtn.setDescription("Clear the current filter");
         clearFilterTextBtn.addClickListener(e -> filterText.clear());
@@ -54,12 +49,14 @@ public class MyUI extends UI {
         filtering.addComponents(filterText, clearFilterTextBtn);
         filtering.setStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
-        grid.setColumns("firstName", "lastName", "birthDate", "email");
+        
+        // Main grid
+        grid.setColumns("firstName", "lastName", "birthDate", "email", "modifiable");
 
-        HorizontalLayout main = new HorizontalLayout(grid, form);
+        HorizontalLayout main = new HorizontalLayout(grid);
         main.setSizeFull();
         grid.setSizeFull();
-        main.setExpandRatio(grid, 1);
+        
         
         // Bottom buttons
         Button newCustomerButton = new Button("Add new customer");
@@ -84,7 +81,19 @@ public class MyUI extends UI {
         	}
         });
         
-        HorizontalLayout bottomButtons = new HorizontalLayout(newCustomerButton, editCustomerButton, deleteCustomerButton);
+        enableButton.setVisible(false);
+        enableButton.addClickListener(e -> {
+        	selectedCustomer.setModifiable(true);
+        	grid.asSingleSelect().clear();
+        });
+        
+        disableButton.setVisible(false);
+        disableButton.addClickListener(e -> {
+        	selectedCustomer.setModifiable(false);
+        	grid.asSingleSelect().clear();
+        });
+        
+        HorizontalLayout bottomButtons = new HorizontalLayout(newCustomerButton, editCustomerButton, deleteCustomerButton, enableButton, disableButton);
         
         layout.addComponents(filtering, main, bottomButtons);
 
@@ -93,15 +102,29 @@ public class MyUI extends UI {
 
         setContent(layout);
 
-        form.setVisible(false);
-
         grid.asSingleSelect().addValueChangeListener(event -> {
-            if (event.getValue() == null) {
-                form.setVisible(false);
-            } else {
+            if (event.getValue() != null) {
             	selectedCustomer = event.getValue();
             	editCustomerButton.setEnabled(true);
             	deleteCustomerButton.setEnabled(true);
+            	if(event.getValue().isModifiable()){
+            		enableButton.setVisible(false);
+            		disableButton.setVisible(true);
+            		editCustomerButton.setEnabled(true);
+            		deleteCustomerButton.setEnabled(true);
+            	}else{
+            		enableButton.setVisible(true);
+            		disableButton.setVisible(false);
+            		editCustomerButton.setEnabled(false);
+            		deleteCustomerButton.setEnabled(false);
+            	}
+            }
+            else{
+            	selectedCustomer = null;
+            	enableButton.setVisible(false);
+            	disableButton.setVisible(false);
+            	editCustomerButton.setEnabled(false);
+            	deleteCustomerButton.setEnabled(false);
             }
         });
         
